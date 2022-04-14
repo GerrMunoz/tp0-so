@@ -6,5 +6,9 @@
 #include <string.h>
 #include <commons/log.h>
 #include "utils.h"
+#include <unistd.h>
+#include <pthread.h>
+
+void atender_cliente(int cliente_fd);
 
 #endif /* SERVER_H_ */
