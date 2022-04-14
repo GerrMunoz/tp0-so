@@ -16,18 +16,37 @@
 
 typedef enum
 {
-	MENSAJE,
-	PAQUETE
+	PERSONA,
+	COORDENADA
 }op_code;
+
+typedef struct
+{ 
+    uint32_t dni;
+    uint8_t edad;
+	uint32_t pasaporte;
+    uint32_t nombre_length;
+	char* nombre;
+} t_persona;
+
+typedef struct
+{
+	uint32_t latitud;
+	uint32_t longitud;
+} t_coordenada;
 
 t_log* logger;
 
-void* recibir_buffer(int*, int);
-
 int iniciar_servidor(void);
 int esperar_cliente(int);
-t_list* recibir_paquete(int);
-void recibir_mensaje(int);
 int recibir_operacion(int);
+void* recibir_estructura(int, op_code);
+void* deserializar_estructura(op_code, void*);
+
+void recibir_persona(int);
+void recibir_coordenada(int);
+
+t_persona* deserializar_persona(void*);
+t_coordenada* deserializar_coordenada(void*);
 
 #endif /* UTILS_H_ */

@@ -16,6 +16,38 @@ void* serializar_paquete(t_paquete* paquete, int bytes)
 	return magic;
 }
 
+void* serializar_persona(t_persona* persona, int* tamanio)
+{
+	*tamanio = sizeof(uint32_t) * 3 + sizeof(uint8_t) + persona->nombre_length;
+	void* stream = malloc(*tamanio);
+	int desplazamiento = 0;
+
+	memcpy(stream + desplazamiento, &persona->dni, sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);
+	memcpy(stream + desplazamiento, &persona->edad, sizeof(uint8_t));
+	desplazamiento += sizeof(uint8_t);
+	memcpy(stream + desplazamiento, &persona->pasaporte, sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);
+	memcpy(stream + desplazamiento, &persona->nombre_length, sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);
+	memcpy(stream + desplazamiento, persona->nombre, persona->nombre_length);
+
+	return stream;
+}
+
+void* serializar_coordenada(t_coordenada* coordenada, int* tamanio)
+{
+	*tamanio = sizeof(uint32_t) * 2;
+	void* stream = malloc(*tamanio);
+	int desplazamiento = 0;
+
+	memcpy(stream + desplazamiento, &coordenada->latitud, sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);
+	memcpy(stream + desplazamiento, &coordenada->longitud, sizeof(uint32_t));
+
+	return stream;
+}
+
 int crear_conexion(char *ip, char* puerto)
 {
 	struct addrinfo hints;
@@ -41,15 +73,15 @@ int crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
-void enviar_mensaje(char* mensaje, int socket_cliente)
+void enviar_estructura(int socket_cliente, void* estructura, op_code codigo_operacion)
 {
+	int tamanio = 0; // De la estructura a enviar
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = MENSAJE;
+	paquete->codigo_operacion = codigo_operacion;
 	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = strlen(mensaje) + 1;
-	paquete->buffer->stream = malloc(paquete->buffer->size);
-	memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
+	paquete->buffer->stream = serializar_estructura(codigo_operacion, estructura, &tamanio);
+	paquete->buffer->size = tamanio;
 
 	int bytes = paquete->buffer->size + 2*sizeof(int);
 
@@ -61,51 +93,20 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 	eliminar_paquete(paquete);
 }
 
-
-void crear_buffer(t_paquete* paquete)
+void* serializar_estructura(op_code codigo_operacion, void* estructura, int* tamanio)
 {
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = 0;
-	paquete->buffer->stream = NULL;
-}
+	void* stream;
 
-t_paquete* crear_super_paquete(void)
-{
-	//me falta un malloc!
-	t_paquete* paquete;
+	switch (codigo_operacion) {
+		case PERSONA:
+			stream = serializar_persona(estructura, tamanio);
+			break;
+		case COORDENADA:
+			stream = serializar_coordenada(estructura, tamanio);
+			break;
+	}
 
-	//descomentar despues de arreglar
-	//paquete->codigo_operacion = PAQUETE;
-	//crear_buffer(paquete);
-	return paquete;
-}
-
-t_paquete* crear_paquete(void)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = PAQUETE;
-	crear_buffer(paquete);
-	return paquete;
-}
-
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
-{
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
-
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
-
-	paquete->buffer->size += tamanio + sizeof(int);
-}
-
-void enviar_paquete(t_paquete* paquete, int socket_cliente)
-{
-	int bytes = paquete->buffer->size + 2*sizeof(int);
-	void* a_enviar = serializar_paquete(paquete, bytes);
-
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
+	return stream;
 }
 
 void eliminar_paquete(t_paquete* paquete)

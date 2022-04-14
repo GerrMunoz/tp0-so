@@ -15,9 +15,6 @@ int main(void)
 	/* ---------------- LOGGING ---------------- */
 
 	logger = iniciar_logger();
-
-	// Usando el logger creado previamente
-	// Escribi: "Hola! Soy un log"
 	log_info(logger, "Soy un Log");
 
 
@@ -36,29 +33,16 @@ int main(void)
 	log_info(logger, "PUERTO: %s", puerto);
 	log_info(logger, "VALOR: %s", valor);
 
-
-	/* ---------------- LEER DE CONSOLA ---------------- */
-
-	// Descomentar :)
-	// leer_consola(logger);
-
-	/*---------------------------------------------------PARTE 3-------------------------------------------------------------*/
-
-	// ADVERTENCIA: Antes de continuar, tenemos que asegurarnos que el servidor esté corriendo para poder conectarnos a él
-
 	// Creamos una conexión hacia el servidor
 	conexion = crear_conexion(ip, puerto);
 
-	// Enviamos al servidor el valor de CLAVE como mensaje
-	enviar_mensaje(valor, conexion);
+	// Armamos y enviamos la persona
+	persona(conexion);
 
-	// Armamos y enviamos el paquete
-	paquete(conexion);
+	// Armamos y enviamos la coordenada
+	coordenada(conexion);
 
 	terminar_programa(conexion, logger, config);
-
-	/*---------------------------------------------------PARTE 5-------------------------------------------------------------*/
-	// Proximamente
 }
 
 t_log* iniciar_logger(void)
@@ -85,51 +69,33 @@ t_config* iniciar_config(void)
 	return nuevo_config;
 }
 
-void leer_consola(t_log* logger)
+void persona(int conexion)
 {
-	char* leido;
+	// Armamos la persona
+	t_persona* persona = (t_persona*) malloc(sizeof(t_persona)); 
+	persona->dni = 1234;
+	persona->edad = 25;
+	persona->pasaporte = 1111;
+	persona->nombre_length = strlen("Gerardo") + 1;
+	persona->nombre = malloc(persona->nombre_length);
+	strcpy(persona->nombre, "Gerardo");
 
-	// La primera te la dejo de yapa
-	leido = readline("> ");
+	enviar_estructura(conexion, persona, PERSONA);
 
-	// El resto, las vamos leyendo y logueando hasta recibir un string vacío
-	while (strcmp(leido, "")) {
-		log_info(logger, "%s" ,leido);
-		
-		free(leido);
-
-		leido = readline(">"); 
-	}
-
-	// ¡No te olvides de liberar las lineas antes de regresar!
-	free(leido);
+	free(persona->nombre);
+	free(persona);
 }
 
-void paquete(int conexion)
+void coordenada(int conexion)
 {
-	// Ahora toca lo divertido!
-	char* leido;
-	t_paquete* paquete;
+	// Armamos la coordenada
+	t_coordenada* coordenada = (t_coordenada*) malloc(sizeof(t_coordenada));
+	coordenada->latitud = 10;
+	coordenada->longitud = 20;
 
-	paquete = crear_paquete();
-	// Leemos y esta vez agregamos las lineas al paquete
+	enviar_estructura(conexion, coordenada, COORDENADA);
 
-	leido = readline(">");
-
-	while (strcmp(leido, "")) {
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-
-		free(leido);
-
-		leido = readline(">"); 
-	}
-
-	enviar_paquete(paquete, conexion);
-
-	// ¡No te olvides de liberar las líneas y el paquete antes de regresar!
-	free(leido);
-	eliminar_paquete(paquete);
-	
+	free(coordenada);
 }
 
 void terminar_programa(int conexion, t_log* logger, t_config* config)

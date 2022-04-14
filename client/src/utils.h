@@ -12,8 +12,8 @@
 
 typedef enum
 {
-	MENSAJE,
-	PAQUETE
+	PERSONA,
+	COORDENADA
 }op_code;
 
 typedef struct
@@ -28,14 +28,26 @@ typedef struct
 	t_buffer* buffer;
 } t_paquete;
 
+typedef struct
+{
+    uint32_t dni;
+    uint8_t edad;
+	uint32_t pasaporte;
+    uint32_t nombre_length;
+	char* nombre;
+} t_persona;
 
+typedef struct
+{
+	uint32_t latitud;
+	uint32_t longitud;
+} t_coordenada;
 
 int crear_conexion(char* ip, char* puerto);
-void enviar_mensaje(char* mensaje, int socket_cliente);
-t_paquete* crear_paquete(void);
-t_paquete* crear_super_paquete(void);
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
-void enviar_paquete(t_paquete* paquete, int socket_cliente);
+
+void enviar_estructura(int socket_cliente, void* estructura, op_code codigo_operacion);
+void* serializar_estructura(op_code codigo_operacion, void* structura, int* tamanio);
+
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 
