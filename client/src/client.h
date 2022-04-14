@@ -13,6 +13,8 @@
 
 t_log* iniciar_logger(void);
 t_config* iniciar_config(void);
+void mostrar_menu();
+void accionar(int opcion, int conexion);
 void persona(int conexion);
 void coordenada(int conexion);
 void terminar_programa(int, t_log*, t_config*);

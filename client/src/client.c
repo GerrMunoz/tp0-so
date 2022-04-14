@@ -8,6 +8,7 @@ int main(void)
 	char* ip;
 	char* puerto;
 	char* valor;
+	char* leido;
 
 	t_log* logger;
 	t_config* config;
@@ -36,13 +37,45 @@ int main(void)
 	// Creamos una conexión hacia el servidor
 	conexion = crear_conexion(ip, puerto);
 
-	// Armamos y enviamos la persona
-	persona(conexion);
+	mostrar_menu();
+	leido = readline("> ");
 
-	// Armamos y enviamos la coordenada
-	coordenada(conexion);
+	while (strcmp(leido, "")) {
+		accionar(atoi(leido), conexion); // atoi(char*) => int
+
+		free(leido);
+		mostrar_menu();
+		leido = readline(">"); 
+	}
 
 	terminar_programa(conexion, logger, config);
+}
+
+void mostrar_menu()
+{
+	printf("Ingrese alguna opción\n");
+	printf("[%d]: Enviar persona\n", PERSONA);
+	printf("[%d]: Enviar coordenada\n", COORDENADA);
+	printf("Presione ENTER para salir\n");
+}
+
+void accionar(int opcion, int conexion)
+{
+	switch (opcion) {
+		case PERSONA:
+			// Armamos y enviamos la persona
+			printf("Enviando persona...........\n\n");
+			persona(conexion);
+			break;
+		case COORDENADA:
+			// Armamos y enviamos la coordenada
+			printf("Enviando coordenada...........\n\n");
+			coordenada(conexion);
+			break;
+		default:
+			printf("Opcion no válida!!!\n\n");
+			break;
+	}
 }
 
 t_log* iniciar_logger(void)
